@@ -34,7 +34,7 @@ class Classifier:
 
     def analyse(self, images):
         answers = []
-        for filename in sys.argv[1:]:
+        for filename in images:
             if not os.path.exists(filename):
                 print(f"file {filename} not found")
                 sys.exit(2)
@@ -48,7 +48,7 @@ class Classifier:
                 img = img[:,x//2-y//2:x//2+y//2]
             # resize
             img = imresize(img, (128, 128))
-            #imsave(f"{filename}_shrink.png", img)
+            # imsave(f"{filename}_shrink.png", img)
             answer = model.predict([img.astype(float)/255.])
             answers.append(answer)
 
@@ -68,7 +68,7 @@ class Classifier:
             print(label[np.argmax(answer)], answer, filename)
 
     def is_good(self, image):
-        return np.argmax(self.analyse([image])) == 1
+        return np.argmax(self.analyse([image])[0]) == 1
 
     def is_bad(self, image):
         return not self.is_good()
