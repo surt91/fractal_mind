@@ -111,7 +111,6 @@ def answerMentions():
         print(len(todo), "new messages")
         for t in todo:
             judge_tweet(t)
-            sys.exit()
     except:
         print("something went wrong", sys.exc_info())
 
