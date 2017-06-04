@@ -31,12 +31,12 @@ img_aug.add_random_90degrees_rotation()
 network = input_data(shape=[None, n_side, n_side, 4],
                      data_preprocessing=img_prep,
                      data_augmentation=img_aug)
-network = conv_2d(network, 16, 2, activation='relu')
+network = conv_2d(network, 32, 3, activation='relu')
 network = max_pool_2d(network, 2)
-network = conv_2d(network, 32, 3, activation='relu')
-network = conv_2d(network, 32, 3, activation='relu')
-network = max_pool_2d(network, 2, strides=2)
-network = fully_connected(network, 128, activation='relu')
+network = conv_2d(network, 64, 4, activation='relu')
+network = conv_2d(network, 64, 4, activation='relu')
+network = max_pool_2d(network, 2)
+network = fully_connected(network, 512, activation='relu')
 network = dropout(network, 0.5)
 network = fully_connected(network, n_classes, activation='softmax')
 network = regression(network, optimizer='adam',
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     X_test, Y_test = image_preloader("test", image_shape=(n_side, n_side), mode='folder', grayscale=False, categorical_labels=True)
 
     model.fit(X, Y, n_epoch=100, shuffle=True, validation_set=(X_test, Y_test),
-              show_metric=True, batch_size=96, run_id='fractals_' + unique)
+              show_metric=True, batch_size=64, run_id='fractals_' + unique)
 
     # save
     model.save('fractal.tflearn')
