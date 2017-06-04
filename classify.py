@@ -1,18 +1,24 @@
 import os
 import sys
+import shutil
 
 import numpy as np
-from scipy.misc import imread
+from scipy.misc import imread, imresize, imsave
 
 from convolutional import model
 
+prog_path = os.path.dirname(os.path.realpath(__file__))
+
 
 def download_model():
+    print("starting download of model")
     import tarfile
-    import urllib.request.urlretrieve
+    import urllib.request
 
     fname = "fractal.tflearn.tar.xz"
-    urlretrieve ("https://hendrik.schawe.me/fractal.tflearn.tar.xz", fname)
+    urllib.request.urlretrieve("https://hendrik.schawe.me/fractal.tflearn.tar.xz", fname)
+
+    print("unpack model")
     with tarfile.open(fname) as f:
         f.extractall('.')
     os.remove(fname)
@@ -20,21 +26,40 @@ def download_model():
 
 # TODO: startup is slow, speed it up somehow
 if __name__ == '__main__':
-    if sys.argc != 2:
-        print("this program takes exactly one argument: the filename of the file to be classified")
+    if len(sys.argv) < 2:
+        print("this program takes arguments: the filenames of the files to be classified")
         sys.exit(1)
     filename = sys.argv[1]
-    if not os.path.exists(filename):
-        print(f"file {filename} not found")
-        sys.exit(2)
 
-    if any(os.path.exists(f) for f in ["fractal.tflearn.data-00000-of-00001", "fractal.tflearn.index", "fractal.tflearn.meta"]):
+    missing_files = [not os.path.exists(os.path.join(prog_path, f)) for f in ["fractal.tflearn.data-00000-of-00001", "fractal.tflearn.index", "fractal.tflearn.meta"]]
+    if any(missing_files):
         download_model()
-    model.load('fractal.tflearn')
+    model.load(os.path.join(prog_path, 'fractal.tflearn'))
 
-    img = imread(filename, mode="RGBA").astype(float)
+    for filename in sys.argv[1:]:
+        if not os.path.exists(filename):
+            print(f"file {filename} not found")
+            sys.exit(2)
 
-    answer = model.predict([img])
+        img = imread(filename, mode="RGBA")
+        # crop
+        y, x, _ = img.shape
+        if x < y:
+            img = img[y//2-x//2:y//2+x//2,:]
+        elif x > y:
+            img = img[:,x//2-y//2:x//2+y//2]
+        # resize
+        img = imresize(img, (128, 128))
+        #imsave(f"{filename}_shrink.png", img)
+        answer = model.predict([img.astype(float)/255.])
 
-    label = ["bad", "good"]
-    print(label[np.argmax(answer)], answer)
+        os.makedirs("good", exist_ok=True)
+        os.makedirs("bad", exist_ok=True)
+
+        if np.argmax(answer) == 1:
+            shutil.copy(filename, "good")
+        else:
+            shutil.copy(filename, "bad")
+
+        label = ["bad", "good"]
+        print(label[np.argmax(answer)], answer, filename)

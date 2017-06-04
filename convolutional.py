@@ -48,21 +48,48 @@ unique = datetime.datetime.now().strftime("%s")
 model = tflearn.DNN(network, tensorboard_verbose=3)
 
 
-def test_sample(n, X, Y):
+def test_sample(n, X, Y, sample=True):
     from random import random
     import numpy as np
     import matplotlib.pyplot as plt
 
     label = ["bad", "good", "ugly"]
 
-    for _ in range(n):
-        i = int(random() * len(X))
-        correct = np.argmax(Y[i])
-        predict = np.argmax(model.predict([X[i]]))
-        print(label[correct], "<->", label[predict])
-        if correct != predict:
-            plt.imshow(X[i])
-            plt.show()
+    if sample:
+        for _ in range(n):
+            i = int(random() * len(X))
+            correct = np.argmax(Y[i])
+            predict = np.argmax(model.predict([X[i]]))
+            print(label[correct], "<->", label[predict])
+            if correct != predict:
+                plt.imshow(X[i])
+                plt.show()
+    else:
+        right_positive = 0
+        false_positive = 0
+        false_negative = 0
+        right_negative = 0
+        for i in range(len(X)):
+            correct = np.argmax(Y[i])
+            predict = np.argmax(model.predict([X[i]]))
+            if correct == 1 and predict == 1:
+                right_positive += 1
+            elif correct == 0 and predict == 1:
+                false_positive += 1
+            elif correct == 1 and predict == 0:
+                false_negative += 1
+            elif correct == 0 and predict == 0:
+                right_negative += 1
+
+            if correct != predict:
+                print(label[correct], "<->", label[predict])
+                plt.imshow(X[i])
+                plt.show()
+
+        print("right_positive", right_positive)
+        print("right_negative", right_negative)
+        print("false_positive", false_positive)
+        print("false_negative", false_negative)
 
 
 if __name__ == '__main__':
@@ -77,4 +104,4 @@ if __name__ == '__main__':
     # save
     model.save('fractal.tflearn')
 
-    test_sample(40, X_test, Y_test)
+    test_sample(40, X_test, Y_test, sample=False)
