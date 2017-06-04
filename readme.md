@@ -13,3 +13,4 @@ Yes, this is overkill, but I always wanted to use a neural net.
     * tensorflow
     * numpy
     * scipy
+    * tweepy
