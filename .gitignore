@@ -1,4 +1,8 @@
 __pycache__
+hd/
 tmp/
 
 last_id.dat
+
+*.tflearn.*
+checkpoint
